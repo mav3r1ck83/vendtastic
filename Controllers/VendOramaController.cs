@@ -21,10 +21,10 @@ namespace VendOrama.Controllers
             _vendOramaService = vendOramaService;
         }
         // Get current Stock. 
-        [HttpGet("{cacheId}")]
-        public List<ProductAmountDto> Get(string cacheId)
+        [HttpGet]
+        public List<ProductAmountDto> Get()
         {
-            var results = _vendOramaService.getProducts(cacheId);
+            var results = _vendOramaService.getProducts();
             return results;
         }
 

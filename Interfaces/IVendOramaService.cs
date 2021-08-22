@@ -9,7 +9,7 @@ namespace VendOrama.Interfaces
 {
     public interface IVendOramaService
     {
-        List<ProductAmountDto> getProducts(string cacheId);
+        List<ProductAmountDto> getProducts();
         StockAndChangeDto Purchase(int itemId, JObject payload);
     }
 }
