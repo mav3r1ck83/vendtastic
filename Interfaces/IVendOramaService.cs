@@ -10,6 +10,6 @@ namespace VendOrama.Interfaces
     public interface IVendOramaService
     {
         List<ProductAmountDto> getProducts();
-        StockAndChangeDto Purchase(int itemId, JObject payload);
+        StockAndChangeDto Purchase(int pennyUsed, int dimeUsed, int nickleUsed, int quarterUsed,  int pepsiPurchased, int cokePurchased, int sodaPurchased, int paidAmount, int amountDue);
     }
 }

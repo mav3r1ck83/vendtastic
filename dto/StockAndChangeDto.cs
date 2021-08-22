@@ -10,5 +10,6 @@ namespace VendOrama.dto
         
 
         public bool PurchaseSuccess { get; set; }
+        public string ErrorMessage { get; set; }
     }
 }

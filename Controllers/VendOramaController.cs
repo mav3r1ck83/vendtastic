@@ -30,10 +30,10 @@ namespace VendOrama.Controllers
 
 
         // Purchase and return current Stock. 
-        [HttpPatch("purchase/{itemId}")]
-        public StockAndChangeDto Purchase(int itemId, [FromBody] JObject payload)
+        [HttpPatch]
+        public StockAndChangeDto Purchase(int pennyUsed, int dimeUsed, int nickeUsed, int quarterUsed, int pepsiPurchased, int cokePurchased, int sodaPurchased, int paidAmount, int amountDue)
         {
-            var stockLeftOver = _vendOramaService.Purchase(itemId, payload);
+            var stockLeftOver = _vendOramaService.Purchase(pennyUsed, dimeUsed, nickeUsed, quarterUsed, pepsiPurchased, cokePurchased, sodaPurchased, paidAmount, amountDue);
             return stockLeftOver;
         }
 

@@ -29,11 +29,157 @@ namespace VendOrama.Services
             return result;
         }
 
-        public StockAndChangeDto Purchase(int itemId, JObject payload)
+        public StockAndChangeDto Purchase(int pennyUsed, int dimeUsed, int nickleUsed, int quarterUsed, int pepsiPurchased, int cokePurchased, int sodaPurchased, int paidAmount, int amountDue)
         {
-            StockAndChangeDto result = new StockAndChangeDto();
-            return result;
+            StockAndChangeDto newTransaction = new StockAndChangeDto();
+
+
+
+            int changeDue = paidAmount - amountDue;
+
+            
+
+            try
+            {
+                CachedData data = new CachedData();
+
+                bool AlreadyExist = _cache.TryGetValue("CachedVendOrama", out data);
+                if (!AlreadyExist)
+                {
+                    data = CreateCache();
+                }
+                data.PennyAmount += pennyUsed;
+                data.NickelAmount += nickleUsed;
+                data.DimeAmount += dimeUsed;
+                data.QuerterAmount += quarterUsed;
+
+                var PepsiCurrentStock = data.CurrentStock.FirstOrDefault(e => e.ProductName == "Pepsi");
+                var CokeCurrentStock = data.CurrentStock.FirstOrDefault(e => e.ProductName == "Coke");
+                var SodaCurrentStock = data.CurrentStock.FirstOrDefault(e => e.ProductName == "Soda");
+
+                newTransaction = GetChange(changeDue, data);
+
+                PepsiCurrentStock.ProductAmount -= pepsiPurchased;
+                CokeCurrentStock.ProductAmount -= pepsiPurchased;
+                SodaCurrentStock.ProductAmount -= sodaPurchased;
+
+
+                newTransaction = GetChange(changeDue, data);
+
+                newTransaction.CurrentStock = data.CurrentStock;
+
+
+
+            }
+            catch(Exception exception)
+            {
+                return new StockAndChangeDto
+                {
+                    PurchaseSuccess = false,
+                    ErrorMessage = exception.Message
+                };
+            }
+
+            return newTransaction;
         }
+
+        public StockAndChangeDto GetChange(int changeDue, CachedData data)
+        {
+            StockAndChangeDto change = new StockAndChangeDto();
+            int possibleChange = 0;
+            int checkChange = 0;
+            var tempData = data;
+            // check change amount in quarters. 
+            if (changeDue % 25 == 0 && changeDue > 25)
+            {
+                possibleChange = data.QuerterAmount - changeDue / 25;
+                if (possibleChange >= 0)
+                {
+                    data.QuerterAmount = possibleChange;
+                    change.QuerterAmount = changeDue / 25;
+                    return change;
+                }
+
+            }
+            else if (changeDue > 25)
+            {
+                checkChange = changeDue - (changeDue % 25);
+                possibleChange = data.QuerterAmount - checkChange / 25;
+                if (possibleChange >= 0)
+                {
+                    
+                    data.QuerterAmount -= checkChange / 25;
+                    change.QuerterAmount = checkChange / 25;
+                    changeDue = changeDue % 25;
+                }
+            }
+
+            // check change amount in dimes
+            if (changeDue % 10 == 0 && changeDue > 10)
+            {
+                possibleChange = data.DimeAmount - changeDue % 10;
+                if (possibleChange >= 0)
+                {
+                    data.DimeAmount = possibleChange;
+                    change.DimeAmount = changeDue / 10;
+                    return change;
+                }
+
+            }
+            else if (changeDue > 10)
+            {
+                checkChange = changeDue - (changeDue % 10);
+                possibleChange = data.DimeAmount - checkChange / 10;
+                if (possibleChange >= 0)
+                {
+                    
+                    data.DimeAmount -= checkChange / 10;
+                    change.DimeAmount = checkChange / 10;
+                    changeDue = changeDue %  10;
+                }
+            }
+            // check for nickle change
+            if (changeDue % 5 == 0 && changeDue > 5)
+            {
+                possibleChange = data.NickelAmount - changeDue % 5;
+                if (possibleChange >= 0)
+                {
+                    data.NickelAmount = possibleChange;
+                    change.NickelAmount = changeDue / 5;
+                    return change;
+                }
+
+            }
+            else if (changeDue > 5)
+            {
+                checkChange = changeDue - (changeDue % 5);
+                possibleChange = data.NickelAmount - checkChange / 5;
+                if (possibleChange >= 0)
+                {
+
+                    data.NickelAmount -= checkChange / 5;
+                    change.NickelAmount = checkChange / 5;
+                    changeDue = changeDue % 5;
+                }
+            }
+
+            // check for Penny change
+            if (changeDue <= data.PennyAmount)
+            {
+                change.PennyAmount = changeDue;
+            }
+            else
+            {
+                throw new Exception("Not enough change");
+            }
+
+
+            change.PurchaseSuccess = true;
+
+            return change;
+        }
+
+
 
         public CachedData CreateCache()
         {
