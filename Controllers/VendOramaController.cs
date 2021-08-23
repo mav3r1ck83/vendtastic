@@ -22,7 +22,7 @@ namespace VendOrama.Controllers
             _vendOramaService = vendOramaService;
         }
         // Get current Stock. 
-        [EnableCors("AnotherPolicy")]
+        [EnableCors("AllowAll")]
         [HttpGet]
         public List<ProductAmountDto> Get()
         {
@@ -32,9 +32,9 @@ namespace VendOrama.Controllers
 
 
         // Purchase and return current Stock. 
-        [EnableCors("AnotherPolicy")]
+        [EnableCors("AllowAll")]
         [HttpPatch]
-        public StockAndChangeDto Purchase(int pennyUsed, int dimeUsed, int nickeUsed, int quarterUsed, int pepsiPurchased, int cokePurchased, int sodaPurchased, int paidAmount, int amountDue)
+        public StockAndChangeDto Purchase(int pennyUsed = 0, int dimeUsed = 0, int nickeUsed = 0, int quarterUsed = 0, int pepsiPurchased = 0, int cokePurchased = 0, int sodaPurchased = 0, int paidAmount = 0, int amountDue = 0)
         {
             var stockLeftOver = _vendOramaService.Purchase(pennyUsed, dimeUsed, nickeUsed, quarterUsed, pepsiPurchased, cokePurchased, sodaPurchased, paidAmount, amountDue);
             return stockLeftOver;

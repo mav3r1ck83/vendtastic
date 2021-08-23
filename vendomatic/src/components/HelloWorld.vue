@@ -48,16 +48,22 @@
       <v-col>
         <v-card>
       <v-text-field
+      :disabled= noPepsi
+      @change="sodaAvailableCheck"
       id ="Pepsi"
       v-model="pepsiBuy"
       label="Pepsi"
       ></v-text-field>
-            <v-text-field
+      <v-text-field
+      @change="sodaAvailableCheck"
+      :disabled = noCoke
       id ="Coke"
       v-model="cokeBuy"
       label="Coke"
       ></v-text-field>
-            <v-text-field
+      <v-text-field
+      @change="sodaAvailableCheck"
+      :disabled= noSoda
       id ="Soda"
       v-model="sodaBuy"
       label="Soda"
@@ -81,7 +87,7 @@
           ></v-text-field>
         </v-card>
         <v-btn
-          :disabled="!readyPurchase"
+          :disabled=!readyPurchase
           @click="purchaseNow"
           style="margin:20px; float:right; width: 150px"
           id="purchase">
@@ -116,6 +122,7 @@ export default {
       cokeAmmount: 0,
       pepsiAmmount: 0,
       sodaAmmount: 0,
+      initialLoad: null,
     }
   },
   computed:{
@@ -135,11 +142,44 @@ export default {
     readyPurchase(){
       return (this.totalDue <= this.totalMoney && this.totalDue > 0 && this.positiveInput && this.supplyEnough)
     },
+    noPepsi(){
+      return (this.pepsiAmmount == 0)
+    },
+    noCoke(){
+      return (this.cokeAmmount == 0)
+    },
+    noSoda(){
+      return (this.sodaAmmount == 0)
+    }
 
   },
-  mounted: function(){
-    var initialLoad = axios.get(`https://localhost:5001/vendOrama/VendOrama/`)
-    initialLoad.forEach(element => {
+  watch:{
+  },
+  created: function(){
+    this.loadUp()
+
+  },
+  methods:{
+    sodaAvailableCheck(){
+      if (this.pepsiBuy > this.pepsiAmmount ){
+        this.pepsiBuy = this.pepsiAmmount
+        alert(`That amount is beyond current stock level, theres only ${this.pepsiAmmount} Pepsi left`)
+        
+      }
+      if (this.cokeBuy > this.cokeAmmount){
+        this.cokeBuy = this.cokeAmmount
+        alert(`That amount is beyond current stock level, theres only ${this.cokeAmmount} Coke left`)
+
+      }
+      if (this.sodaBuy > this.sodaAmmount){
+        this.sodaBuy = this.sodaAmmount
+        alert(`That amount is beyond current stock level, theres only ${this.sodaAmmount} Soda left`)
+
+      }
+    },
+    async loadUp(){
+      await axios.get(`https://localhost:5001/vendOrama/VendOrama/`).then(response => (this.initialLoad = response))
+    this.initialLoad.data.forEach(element => {
        switch (element.productName){
          case 'Coke':
            this.cokeAmmount = element.productAmount
@@ -158,17 +198,28 @@ export default {
        }
 
     });
-  },
-  methods:{
-    purchaseNow(){
-      var params = `?pennyUsed=${this.pennyAmount}&dimeUsed=${this.dimeAmmount}&nickeUsed=${this.nickelAmount}&quarterUsed=${this.quarterAmmount}&pepsiPurchased=${this.pepsiBuy}&cokePurchased=${this.cokeBuy}&sodaPurchased=${this.sodaBuy}&paidAmount=${this.totalMoney}&amountDue=${this.totalDue}`
+
+    },
+    async purchaseNow(){
+      var totalCents = this.totalMoney * 100
+      var totalDueCents = this.totalDue * 100
+      var params = `?pennyUsed=${this.pennyAmount !=''? this.pennyAmount: 0}&dimeUsed=${this.dimeAmmount !=''? this.dimeAmmount: 0}&nickeUsed=${this.nickelAmount !=''? this.nickelAmount: 0}&quarterUsed=${this.quarterAmmount !=''? this.quarterAmmount: 0}&pepsiPurchased=${this.pepsiBuy !=''? this.pepsiBuy:0}&cokePurchased=${this.cokeBuy !=''? this.cokeBuy:0}&sodaPurchased=${this.sodaBuy !=''? this.sodaBuy:0}&paidAmount=${totalCents}&amountDue=${totalDueCents}`
       var request =`https://localhost:5001/vendOrama/VendOrama/${params}`
-      var newPurchase = axios.patch(request)
+      var newPurchase 
+        await axios.patch(request).then(response => (newPurchase = response.data))
+      console.log(newPurchase)
       if (newPurchase.purchaseSuccess){
+        
         this.pennyAmount= newPurchase.pennyAmount
         this.nickelAmount = newPurchase.nickelAmount
-        this.dimeAmmount = newPurchase.dimeAmmount
-        this.quarterAmmount = newPurchase.quarterAmmount
+        this.dimeAmmount = newPurchase.dimeAmount
+        this.quarterAmmount = newPurchase.querterAmount
+        var changeAvailable = (this.pennyAmount > 0 || this.nickelAmount > 0 || this.dimeAmmount > 0 || this.quarterAmmount > 0)
+        if (changeAvailable){
+          alert ("Success please enjoy your drink/s and take your change")
+        } else {
+          alert ("Success please enjoy your drink/s")
+        }
         newPurchase.currentStock.forEach(element => {
           switch (element.productName){
           case 'Coke':
@@ -187,6 +238,9 @@ export default {
               break
        }
         });
+        this.cokeBuy = 0
+        this.pepsiBuy = 0
+        this.sodaBuy = 0
       } else{
         alert(newPurchase.errorMessage)
       }

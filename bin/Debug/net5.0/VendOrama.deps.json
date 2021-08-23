@@ -33,6 +33,7 @@
     ".NETCoreApp,Version=v5.0": {
       "VendOrama/1.0.0": {
         "dependencies": {
+          "Microsoft.AspNet.WebApi.Core": "5.2.7",
           "Microsoft.AspNet.WebApi.Cors": "5.2.7",
           "Microsoft.AspNetCore.Cors": "2.2.0",
           "Microsoft.Extensions.Caching.Memory": "5.0.0",

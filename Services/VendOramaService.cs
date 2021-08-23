@@ -60,11 +60,11 @@ namespace VendOrama.Services
                 newTransaction = GetChange(changeDue, data);
 
                 PepsiCurrentStock.ProductAmount -= pepsiPurchased;
-                CokeCurrentStock.ProductAmount -= pepsiPurchased;
+                CokeCurrentStock.ProductAmount -= cokePurchased;
                 SodaCurrentStock.ProductAmount -= sodaPurchased;
 
 
-                newTransaction = GetChange(changeDue, data);
+                //newTransaction = GetChange(changeDue, data);
 
                 newTransaction.CurrentStock = data.CurrentStock;
 
@@ -76,7 +76,7 @@ namespace VendOrama.Services
                 return new StockAndChangeDto
                 {
                     PurchaseSuccess = false,
-                    ErrorMessage = exception.Message
+                    ErrorMessage = exception.Message?? "Purchase Failed, please contact supplier"
                 };
             }
 
@@ -89,13 +89,17 @@ namespace VendOrama.Services
             int possibleChange = 0;
             int checkChange = 0;
             var tempData = data;
+            int newQuarter = data.QuerterAmount;
+            int newDime = data.DimeAmount;
+            int newNickel = data.NickelAmount;
+            int newPenny = data.PennyAmount;
             // check change amount in quarters. 
             if (changeDue % 25 == 0 && changeDue > 25)
             {
-                possibleChange = data.QuerterAmount - changeDue / 25;
+                possibleChange = data.QuerterAmount - changeDue % 25;
                 if (possibleChange >= 0)
                 {
-                    data.QuerterAmount = possibleChange;
+                    newQuarter -= possibleChange;
                     change.QuerterAmount = changeDue / 25;
                     return change;
                 }
@@ -108,7 +112,7 @@ namespace VendOrama.Services
                 if (possibleChange >= 0)
                 {
                     
-                    data.QuerterAmount -= checkChange / 25;
+                    newQuarter -= checkChange / 25;
                     change.QuerterAmount = checkChange / 25;
                     changeDue = changeDue % 25;
                 }
@@ -120,7 +124,7 @@ namespace VendOrama.Services
                 possibleChange = data.DimeAmount - changeDue % 10;
                 if (possibleChange >= 0)
                 {
-                    data.DimeAmount = possibleChange;
+                    newDime -= possibleChange;
                     change.DimeAmount = changeDue / 10;
                     return change;
                 }
@@ -129,11 +133,11 @@ namespace VendOrama.Services
             else if (changeDue > 10)
             {
                 checkChange = changeDue - (changeDue % 10);
-                possibleChange = data.DimeAmount - checkChange / 10;
+                possibleChange = data.DimeAmount - checkChange % 10;
                 if (possibleChange >= 0)
                 {
                     
-                    data.DimeAmount -= checkChange / 10;
+                    newDime -= checkChange / 10;
                     change.DimeAmount = checkChange / 10;
                     changeDue = changeDue %  10;
                 }
@@ -144,7 +148,7 @@ namespace VendOrama.Services
                 possibleChange = data.NickelAmount - changeDue % 5;
                 if (possibleChange >= 0)
                 {
-                    data.NickelAmount = possibleChange;
+                    newNickel = possibleChange;
                     change.NickelAmount = changeDue / 5;
                     return change;
                 }
@@ -153,11 +157,11 @@ namespace VendOrama.Services
             else if (changeDue > 5)
             {
                 checkChange = changeDue - (changeDue % 5);
-                possibleChange = data.NickelAmount - checkChange / 5;
+                possibleChange = data.NickelAmount - checkChange % 5;
                 if (possibleChange >= 0)
                 {
 
-                    data.NickelAmount -= checkChange / 5;
+                    newNickel -= checkChange / 5;
                     change.NickelAmount = checkChange / 5;
                     changeDue = changeDue % 5;
                 }
@@ -166,6 +170,7 @@ namespace VendOrama.Services
             // check for Penny change
             if (changeDue <= data.PennyAmount)
             {
+                newPenny -= changeDue;
                 change.PennyAmount = changeDue;
             }
             else
@@ -173,7 +178,10 @@ namespace VendOrama.Services
                 throw new Exception("Not enough change");
             }
 
-
+            data.QuerterAmount = newQuarter;
+            data.DimeAmount = newDime;
+            data.NickelAmount = newNickel;
+            data.PennyAmount = newPenny;
             change.PurchaseSuccess = true;
 
             return change;

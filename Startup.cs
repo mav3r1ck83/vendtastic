@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using VendOrama.Interfaces;
 using VendOrama.Services;
+using System.Web.Http;
 
 namespace VendOrama
 {
@@ -38,24 +39,15 @@ namespace VendOrama
             });
             services.AddCors(options =>
             {
-
-                options.AddPolicy("Policy1",
-                    builder =>
-                    {
-                        builder.WithOrigins("http://example.com",
-                                            "http://www.contoso.com");
-                    });
-
-                options.AddPolicy("AnotherPolicy",
-                    builder =>
-                    {
-                        builder.WithOrigins("https://localhost:5001/vendOrama")
-                                            .AllowAnyHeader()
-                                            .AllowAnyMethod();
-                    });
+                options.AddPolicy("AllowAll",
+                builder => builder.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+                //.AllowCredentials());
             });
             // adding services 
             services.AddScoped<IVendOramaService, VendOramaService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -75,13 +67,17 @@ namespace VendOrama
             app.UseHttpsRedirection();
 
             app.UseRouting();
-            app.UseCors();
-     
+
+
+            app.UseCors("AllowAll");
+
+
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
         }
     }
 }
