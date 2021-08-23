@@ -94,7 +94,7 @@
 </template>
 
 <script>
-
+import axios from 'axios'
 export default {
   name: 'HelloWorld',
   props: {
@@ -130,13 +130,10 @@ export default {
   },
   methods:{
     purchaseNow(){
-      this.$http.get('https://localhost:5001/vendOrama/VendOrama')
-      debugger
-
-      // var params = `?pennyUsed=${this.pennyAmount}&dimeUsed=${this.dimeAmmount}&nickeUsed= ${this.nickelAmount}&
-      // quarterUsed= ${this.quarterAmmount}&pepsiPurchased=${this.pepsiBuy}&cokePurchased=${this.cokeBuy}&sodaPurchased=${this.sodaPurchased}
-      // &paidAmount=${this.totalMoney}&amountDue=${this.totalDue}`
-      //var request =`https://localhost:5001/vendOrama/VendOrama/${params}`
+      axios.get(`https://localhost:5001/vendOrama/VendOrama/`)
+      var params = `?pennyUsed=${this.pennyAmount}&dimeUsed=${this.dimeAmmount}&nickeUsed=${this.nickelAmount}&quarterUsed=${this.quarterAmmount}&pepsiPurchased=${this.pepsiBuy}&cokePurchased=${this.cokeBuy}&sodaPurchased=${this.sodaBuy}&paidAmount=${this.totalMoney}&amountDue=${this.totalDue}`
+      var request =`https://localhost:5001/vendOrama/VendOrama/${params}`
+      axios.patch(request)
     }
   }
 }
