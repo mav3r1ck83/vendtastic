@@ -28,3 +28,10 @@ C:\code\VendOrama\obj\Debug\net5.0\ref\VendOrama.dll
 C:\code\VendOrama\obj\Debug\net5.0\VendOrama.pdb
 C:\code\VendOrama\obj\Debug\net5.0\VendOrama.genruntimeconfig.cache
 C:\code\VendOrama\bin\Debug\net5.0\Newtonsoft.Json.dll
+C:\code\VendOrama\bin\Debug\net5.0\vendomatic\package-lock.json
+C:\code\VendOrama\bin\Debug\net5.0\vendomatic\package.json
+C:\code\VendOrama\bin\Debug\net5.0\System.Web.Cors.dll
+C:\code\VendOrama\bin\Debug\net5.0\System.Net.Http.Formatting.dll
+C:\code\VendOrama\bin\Debug\net5.0\System.Web.Http.dll
+C:\code\VendOrama\bin\Debug\net5.0\System.Web.Http.Cors.dll
+C:\code\VendOrama\bin\Debug\net5.0\Newtonsoft.Json.Bson.dll

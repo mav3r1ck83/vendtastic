@@ -112,7 +112,10 @@ export default {
       total:0,
       pepsiCost:36,
       cokeCost:25,
-      sodaCost:45
+      sodaCost:45,
+      cokeAmmount: 0,
+      pepsiAmmount: 0,
+      sodaAmmount: 0,
     }
   },
   computed:{
@@ -123,17 +126,71 @@ export default {
     totalMoney(){
       return ((this.pennyAmount * .01) + (this.nickelAmount * .05) + (this.dimeAmmount * .10) + (this.quarterAmmount * .25)).toFixed(2)
     },
+    positiveInput(){
+      return (this.pennyAmount >= 0 && this.nickelAmount >= 0 && this.dimeAmmount >= 0 && this.quarterAmmount >= 0 && this.cokeBuy >= 0 && this.pepsiBuy >=0 && this.sodaBuy >=0)
+    },
+    supplyEnough(){
+      return (this.cokeAmmount >= this.cokeBuy && this.pepsiAmmount >= this.pepsiBuy && this.sodaAmmount >= this.sodaBuy)
+    },
     readyPurchase(){
-      return (this.totalDue <= this.totalMoney && this.totalDue > 0)
+      return (this.totalDue <= this.totalMoney && this.totalDue > 0 && this.positiveInput && this.supplyEnough)
     },
 
   },
+  mounted: function(){
+    var initialLoad = axios.get(`https://localhost:5001/vendOrama/VendOrama/`)
+    initialLoad.forEach(element => {
+       switch (element.productName){
+         case 'Coke':
+           this.cokeAmmount = element.productAmount
+           this.cokeCost = element.productPrice
+           break
+          case 'Pepsi':
+            this.pepsiAmmount = element.productAmount
+            this.pepsiCost = element.productPrice
+            break
+          case 'Soda':
+            this.sodaAmmount = element.productAmount
+            this.sodaCost = element.productPrice
+            break
+          default:
+            break
+       }
+
+    });
+  },
   methods:{
     purchaseNow(){
-      axios.get(`https://localhost:5001/vendOrama/VendOrama/`)
       var params = `?pennyUsed=${this.pennyAmount}&dimeUsed=${this.dimeAmmount}&nickeUsed=${this.nickelAmount}&quarterUsed=${this.quarterAmmount}&pepsiPurchased=${this.pepsiBuy}&cokePurchased=${this.cokeBuy}&sodaPurchased=${this.sodaBuy}&paidAmount=${this.totalMoney}&amountDue=${this.totalDue}`
       var request =`https://localhost:5001/vendOrama/VendOrama/${params}`
-      axios.patch(request)
+      var newPurchase = axios.patch(request)
+      if (newPurchase.purchaseSuccess){
+        this.pennyAmount= newPurchase.pennyAmount
+        this.nickelAmount = newPurchase.nickelAmount
+        this.dimeAmmount = newPurchase.dimeAmmount
+        this.quarterAmmount = newPurchase.quarterAmmount
+        newPurchase.currentStock.forEach(element => {
+          switch (element.productName){
+          case 'Coke':
+            this.cokeAmmount = element.productAmount
+            this.cokeCost = element.productPrice
+            break
+            case 'Pepsi':
+              this.pepsiAmmount = element.productAmount
+              this.pepsiCost = element.productPrice
+              break
+            case 'Soda':
+              this.sodaAmmount = element.productAmount
+              this.sodaCost = element.productPrice
+              break
+            default:
+              break
+       }
+        });
+      } else{
+        alert(newPurchase.errorMessage)
+      }
+
     }
   }
 }

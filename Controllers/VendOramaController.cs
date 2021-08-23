@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Cors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace VendOrama.Controllers
             _vendOramaService = vendOramaService;
         }
         // Get current Stock. 
+        [EnableCors("AnotherPolicy")]
         [HttpGet]
         public List<ProductAmountDto> Get()
         {
@@ -30,6 +32,7 @@ namespace VendOrama.Controllers
 
 
         // Purchase and return current Stock. 
+        [EnableCors("AnotherPolicy")]
         [HttpPatch]
         public StockAndChangeDto Purchase(int pennyUsed, int dimeUsed, int nickeUsed, int quarterUsed, int pepsiPurchased, int cokePurchased, int sodaPurchased, int paidAmount, int amountDue)
         {

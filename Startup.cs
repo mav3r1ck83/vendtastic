@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Cors;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -35,6 +36,24 @@ namespace VendOrama
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "VendOrama", Version = "v1" });
             });
+            services.AddCors(options =>
+            {
+
+                options.AddPolicy("Policy1",
+                    builder =>
+                    {
+                        builder.WithOrigins("http://example.com",
+                                            "http://www.contoso.com");
+                    });
+
+                options.AddPolicy("AnotherPolicy",
+                    builder =>
+                    {
+                        builder.WithOrigins("https://localhost:5001/vendOrama")
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod();
+                    });
+            });
             // adding services 
             services.AddScoped<IVendOramaService, VendOramaService>();
         }
@@ -42,18 +61,22 @@ namespace VendOrama
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+
+ 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "VendOrama v1"));
+
             }
+            
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
-
-            app.UseAuthorization();
+            app.UseCors();
+     
 
             app.UseEndpoints(endpoints =>
             {
