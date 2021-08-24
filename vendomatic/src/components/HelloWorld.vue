@@ -206,8 +206,7 @@ export default {
       var params = `?pennyUsed=${this.pennyAmount !=''? this.pennyAmount: 0}&dimeUsed=${this.dimeAmmount !=''? this.dimeAmmount: 0}&nickeUsed=${this.nickelAmount !=''? this.nickelAmount: 0}&quarterUsed=${this.quarterAmmount !=''? this.quarterAmmount: 0}&pepsiPurchased=${this.pepsiBuy !=''? this.pepsiBuy:0}&cokePurchased=${this.cokeBuy !=''? this.cokeBuy:0}&sodaPurchased=${this.sodaBuy !=''? this.sodaBuy:0}&paidAmount=${totalCents}&amountDue=${totalDueCents}`
       var request =`https://localhost:5001/vendOrama/VendOrama/${params}`
       var newPurchase 
-        await axios.patch(request).then(response => (newPurchase = response.data))
-      console.log(newPurchase)
+      await axios.patch(request).then(response => (newPurchase = response.data))
       if (newPurchase.purchaseSuccess){
         
         this.pennyAmount= newPurchase.pennyAmount
