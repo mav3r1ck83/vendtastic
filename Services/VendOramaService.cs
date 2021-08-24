@@ -67,6 +67,19 @@ namespace VendOrama.Services
                 //newTransaction = GetChange(changeDue, data);
 
                 newTransaction.CurrentStock = data.CurrentStock;
+                newTransaction.orderReturn = new List<string>();
+                if (pepsiPurchased > 0) {
+                    var pepsiString = ("Pepsi ordered: " + pepsiPurchased);
+                    newTransaction.orderReturn.Add(pepsiString);
+                }
+                if (cokePurchased > 0)
+                {
+                    newTransaction.orderReturn.Add("Coke ordered: " + cokePurchased);
+                }
+                if (sodaPurchased > 0)
+                {
+                    newTransaction.orderReturn.Add("Soda ordered: " + sodaPurchased);
+                }
 
 
 
@@ -175,7 +188,7 @@ namespace VendOrama.Services
             }
             else
             {
-                throw new Exception("Not enough change");
+                throw new Exception("Not sufficient change in the inventory");
             }
 
             data.QuerterAmount = newQuarter;

@@ -54,6 +54,9 @@
       v-model="pepsiBuy"
       label="Pepsi"
       ></v-text-field>
+      <h6>
+      {{pepsiMsg}}
+      </h6>
       <v-text-field
       @change="sodaAvailableCheck"
       :disabled = noCoke
@@ -61,6 +64,9 @@
       v-model="cokeBuy"
       label="Coke"
       ></v-text-field>
+      <h6>
+      {{cokeMsg}}
+      </h6>
       <v-text-field
       @change="sodaAvailableCheck"
       :disabled= noSoda
@@ -68,6 +74,9 @@
       v-model="sodaBuy"
       label="Soda"
       ></v-text-field>
+      <h6>
+      {{sodaMsg}}
+      </h6>
         </v-card>
       </v-col>
       <v-col>
@@ -96,13 +105,32 @@
       </v-col>
     </v-row>
   </div>
+      <v-dialog
+      v-if="purchaseComplete"
+      v-model="purchaseComplete"
+      width="200"
+      height="600"
+      persistent
+    >
+      <reciept
+        id="recipt"
+        :purchasedList="purchaseReciept"
+        :amountDue="totalDue"
+        :totalMoney="totalMoney"
+        @cancel="purchaseComplete = false , refreshData()"
+      ></reciept>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
 import axios from 'axios'
+import Reciept from "./reciept"
 export default {
   name: 'HelloWorld',
+  components:{
+    Reciept
+  },
   props: {
     msg: String
   },
@@ -123,6 +151,8 @@ export default {
       pepsiAmmount: 0,
       sodaAmmount: 0,
       initialLoad: null,
+      purchaseComplete: false,
+      purchaseReciept: null,
     }
   },
   computed:{
@@ -150,16 +180,72 @@ export default {
     },
     noSoda(){
       return (this.sodaAmmount == 0)
+    },
+    sodaMsg(){
+      return ("Soda Available: " + this.sodaAmmount + " at cost: " + (this.sodaCost / 100) )
+    },
+    pepsiMsg(){
+      return ("Pepsi Available: " + this.pepsiAmmount + " at cost: " + (this.pepsiCost / 100) )
+    },
+    cokeMsg(){
+      return ("Coke Available: " + this.cokeAmmount + " at cost: " + (this.cokeCost / 100) )
     }
 
   },
   watch:{
+    pennyAmount(newValue){
+      if (newValue < 0)
+        this.pennyAmount = this.pennyAmount * -1
+    },
+    nickelAmount(newValue){
+      if (newValue < 0){
+        this.nickelAmount = this.nickelAmount * -1
+      }
+    },
+    dimeAmmount(newValue){
+      if (newValue < 0){
+        this.dimeAmmount = this.dimeAmmount * -1
+      }
+    },
+    quarterAmmount(newValue){
+      if(newValue < 0) {
+        this.quarterAmmount = this.quarterAmmount * -1
+      }
+    }
   },
   created: function(){
     this.loadUp()
 
   },
   methods:{
+    refreshData(){
+        var newPurchase = this.purchaseReciept
+        this.pennyAmount= 0
+        this.nickelAmount = 0
+        this.dimeAmmount = 0
+        this.quarterAmmount = 0
+        newPurchase.currentStock.forEach(element => {
+          switch (element.productName){
+          case 'Coke':
+            this.cokeAmmount = element.productAmount
+            this.cokeCost = element.productPrice
+            break
+            case 'Pepsi':
+              this.pepsiAmmount = element.productAmount
+              this.pepsiCost = element.productPrice
+              break
+            case 'Soda':
+              this.sodaAmmount = element.productAmount
+              this.sodaCost = element.productPrice
+              break
+            default:
+              break
+       }
+        });
+        this.cokeBuy = 0
+        this.pepsiBuy = 0
+        this.sodaBuy = 0
+    },
     sodaAvailableCheck(){
       if (this.pepsiBuy > this.pepsiAmmount ){
         this.pepsiBuy = this.pepsiAmmount
@@ -174,6 +260,18 @@ export default {
       if (this.sodaBuy > this.sodaAmmount){
         this.sodaBuy = this.sodaAmmount
         alert(`That amount is beyond current stock level, theres only ${this.sodaAmmount} Soda left`)
+
+      }
+      if (this.pepsiBuy < 0 ){
+        this.pepsiBuy = this.pepsiBuy * -1
+        
+      }
+      if (this.cokeBuy <0){
+        this.cokeBuy = this.cokeBuy * -1
+
+      }
+      if (this.sodaBuy <0 ){
+        this.sodaBuy = this.sodaBuy * -1
 
       }
     },
@@ -205,41 +303,18 @@ export default {
       var totalDueCents = this.totalDue * 100
       var params = `?pennyUsed=${this.pennyAmount !=''? this.pennyAmount: 0}&dimeUsed=${this.dimeAmmount !=''? this.dimeAmmount: 0}&nickeUsed=${this.nickelAmount !=''? this.nickelAmount: 0}&quarterUsed=${this.quarterAmmount !=''? this.quarterAmmount: 0}&pepsiPurchased=${this.pepsiBuy !=''? this.pepsiBuy:0}&cokePurchased=${this.cokeBuy !=''? this.cokeBuy:0}&sodaPurchased=${this.sodaBuy !=''? this.sodaBuy:0}&paidAmount=${totalCents}&amountDue=${totalDueCents}`
       var request =`https://localhost:5001/vendOrama/VendOrama/${params}`
-      var newPurchase 
+      var newPurchase = null
       await axios.patch(request).then(response => (newPurchase = response.data))
       if (newPurchase.purchaseSuccess){
-        
         this.pennyAmount= newPurchase.pennyAmount
         this.nickelAmount = newPurchase.nickelAmount
         this.dimeAmmount = newPurchase.dimeAmount
         this.quarterAmmount = newPurchase.querterAmount
-        var changeAvailable = (this.pennyAmount > 0 || this.nickelAmount > 0 || this.dimeAmmount > 0 || this.quarterAmmount > 0)
-        if (changeAvailable){
-          alert ("Success please enjoy your drink/s and take your change")
-        } else {
-          alert ("Success please enjoy your drink/s")
-        }
-        newPurchase.currentStock.forEach(element => {
-          switch (element.productName){
-          case 'Coke':
-            this.cokeAmmount = element.productAmount
-            this.cokeCost = element.productPrice
-            break
-            case 'Pepsi':
-              this.pepsiAmmount = element.productAmount
-              this.pepsiCost = element.productPrice
-              break
-            case 'Soda':
-              this.sodaAmmount = element.productAmount
-              this.sodaCost = element.productPrice
-              break
-            default:
-              break
-       }
-        });
-        this.cokeBuy = 0
-        this.pepsiBuy = 0
-        this.sodaBuy = 0
+        
+        this.purchaseReciept = newPurchase
+        this.purchaseReciept.amountDue = this.totalDue
+        this.purchaseComplete = true
+ 
       } else{
         alert(newPurchase.errorMessage)
       }
